@@ -1,4 +1,4 @@
-from myhdl import block, delay, always, now, Signal, instance, instances, Simulation, intbv
+from myhdl import block, delay, always, now, Signal, instance, instances, Simulation, intbv, concat, always_comb
 
 
 @block
@@ -19,45 +19,67 @@ def clock_gen(clk, period=20):
 
 
 @block
-def parse_ethernet(clk: Signal, rx: Signal, out: Signal):
-    last = Signal(bool(0))
+def manchester_rx(clk, data_in, port_in):
+    # Create a clock domain for Manchester decoding
+    manchester_clk = Signal(bool(0))
 
+    # Register to hold the last Manchester-encoded bit
+    last_bit = Signal(bool(0))
+
+    # Register to hold the current decoded bit
+    decoded_bit = Signal(bool(0))
+
+    # Manchester decoding logic
     @always(clk.posedge)
-    def parse():
-        if rx != last:
-            out.next = rx
-        last.next = rx
+    def manchester_decode():
+        # Shift the last bit into the MSB of the current data word
+        data_word = concat(last_bit, data_in)
 
-    return parse
+        # If the data word is a valid Manchester code, decode it
+        if data_word == intbv('01'):
+            decoded_bit.next = 0
+        elif data_word == intbv('10'):
+            decoded_bit.next = 1
+        else:
+            decoded_bit.next = decoded_bit
 
+        # Shift the current bit into the last bit register
+        last_bit.next = decoded_bit
 
-@block
-def parse_ip(rx: Signal, out: Signal):
-    n = Signal(intbv(0, min=0, max=len(out)))
+    # Destination port lookup table
+    port_table = {1: 2, 2: 1, 3: 4, 4: 3}
 
-    @always(rx.posedge, rx.negedge)
-    def parse():
-        out.next[n.val] = rx
-        n.next = n + 1
-        if n.val == len(out):
-            n.next = 0
+    # Register to hold the current destination port
+    dest_port = Signal(intbv(0)[3:])
 
-    return parse
+    # Register to hold the current Manchester-encoded bit
+    encoded_bit = Signal(bool(0))
 
+    # Manchester encoding logic
+    @always_comb
+    def manchester_encode():
+        # Get the current destination port based on the incoming port and switch table
+        dest_port.next = port_table[int(port_in)]
 
-@block
-def parse_udp(clk, rx, tx):
-    n = Signal(intbv(0, min=0, max=len(rx)))
+        # If the destination port is different from the incoming port, encode and transmit the packet
+        if dest_port != port_in:
+            if encoded_bit:
+                # Transmit a 10 Manchester code
+                data_out.next = intbv('10')
+                encoded_bit.next = 0
+            else:
+                # Transmit a 01 Manchester code
+                data_out.next = intbv('01')
+                encoded_bit.next = 1
+        else:
+            # Don't transmit the packet if it's destined for the same port
+            data_out.next = 0
+            encoded_bit.next = 0
 
-    @always(clk.posedge)
-    def parse():
-        tx.next = rx[n.val]
-        n.next = n + 1
-        if n == 16:
-            n.next = 0
+    # Register to hold the current Manchester-encoded data word
+    data_out = Signal(intbv(0)[2:])
 
-    return parse
-
+    return manchester_decode, manchester_encode, data_out
 
 @block
 def top(clk, rx, tx):
