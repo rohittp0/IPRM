@@ -88,11 +88,11 @@ def test_bench():
         while True:
             yield delay(10000)
 
-            # print('Source port: {}'.format(source_port))
-            # print('Destination port: {}'.format(dest_port))
-            # print('Encoded: {}'.format(encoded))
-            # print('Data: {}'.format(data))
-            # print('-' * 80)
+            print('Source port: {}'.format(source_port))
+            print('Destination port: {}'.format(dest_port))
+            print('Encoded: {}'.format(encoded))
+            print('Data: {}'.format(data))
+            print('-' * 80)
             # if data != payload:
             #     raise ValueError('Data mismatch')
             # if source_port != src_port:

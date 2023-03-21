@@ -68,7 +68,7 @@ def ip_parser(decoded, source_port, dest_port, data, trigger_in):
         ethertype = int.from_bytes(decoded[ETHERTYPE_OFFSET + 2:ETHERTYPE_OFFSET], byteorder='big')
 
         # Only parse IPv4 UDP packets
-        if ethertype == ETHERTYPE_IPV4 and decoded[PROTOCOL_OFFSET] == UDP_PROTOCOL:
+        if ethertype == ETHERTYPE_IPV4 and decoded[PROTOCOL_OFFSET] == UDP_PROTOCOL or True:
             # src_ip = decoded[SRC_IP_OFFSET + 4:SRC_IP_OFFSET]
             # dst_ip = decoded[DST_IP_OFFSET + 4:DST_IP_OFFSET]
             udp_header = decoded[DATA_OFFSET + 8:DATA_OFFSET]
