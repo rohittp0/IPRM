@@ -36,7 +36,7 @@ def manual_manchester(data: bytes):
     :return: encoded data as string of 1s and 0s
     """
     for byte in data:
-        for i in range(8):
+        for i in range(7, -1, -1):
             if byte & (1 << i):
                 yield 0
                 yield 1
@@ -109,3 +109,4 @@ if __name__ == '__main__':
     tb = test_bench()
     # tb.config_sim(trace=True)
     tb.run_sim()
+
