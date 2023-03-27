@@ -1,125 +1,50 @@
-from myhdl import block, delay, always, now, Signal, instance, instances, Simulation, intbv, concat, always_comb
+from pprint import pprint
+
+from scripts.pack import pack
+from scripts.unpack import unpack
 
 
-@block
-def clock_gen(clk, period=20):
-
-    lowTime = int(period / 2)
-    highTime = period - lowTime
-
-    @instance
-    def drive_clk():
-        while True:
-            yield delay(lowTime)
-            clk.next = 1
-            yield delay(highTime)
-            clk.next = 0
-
-    return drive_clk
+def bhex(bytes_: bytes):
+    return bytes_.hex(sep=".")
 
 
-@block
-def manchester_rx(clk, data_in, port_in):
-    # Create a clock domain for Manchester decoding
-    manchester_clk = Signal(bool(0))
+def print_packet(packet: bytes):
+    """
+    Prints the packet in hex formatted into table correctly according to the Ethernet standard
+    and IP standard.
 
-    # Register to hold the last Manchester-encoded bit
-    last_bit = Signal(bool(0))
+    :param packet:
+    :return: None
+    """
 
-    # Register to hold the current decoded bit
-    decoded_bit = Signal(bool(0))
-
-    # Manchester decoding logic
-    @always(clk.posedge)
-    def manchester_decode():
-        # Shift the last bit into the MSB of the current data word
-        data_word = concat(last_bit, data_in)
-
-        # If the data word is a valid Manchester code, decode it
-        if data_word == intbv('01'):
-            decoded_bit.next = 0
-        elif data_word == intbv('10'):
-            decoded_bit.next = 1
-        else:
-            decoded_bit.next = decoded_bit
-
-        # Shift the current bit into the last bit register
-        last_bit.next = decoded_bit
-
-    # Destination port lookup table
-    port_table = {1: 2, 2: 1, 3: 4, 4: 3}
-
-    # Register to hold the current destination port
-    dest_port = Signal(intbv(0)[3:])
-
-    # Register to hold the current Manchester-encoded bit
-    encoded_bit = Signal(bool(0))
-
-    # Manchester encoding logic
-    @always_comb
-    def manchester_encode():
-        # Get the current destination port based on the incoming port and switch table
-        dest_port.next = port_table[int(port_in)]
-
-        # If the destination port is different from the incoming port, encode and transmit the packet
-        if dest_port != port_in:
-            if encoded_bit:
-                # Transmit a 10 Manchester code
-                data_out.next = intbv('10')
-                encoded_bit.next = 0
-            else:
-                # Transmit a 01 Manchester code
-                data_out.next = intbv('01')
-                encoded_bit.next = 1
-        else:
-            # Don't transmit the packet if it's destined for the same port
-            data_out.next = 0
-            encoded_bit.next = 0
-
-    # Register to hold the current Manchester-encoded data word
-    data_out = Signal(intbv(0)[2:])
-
-    return manchester_decode, manchester_encode, data_out
-
-@block
-def top(clk, rx, tx):
-    rx_ip = Signal(bool(0))
-    rx_udp = Signal(intbv(0)[16:])
-
-    ethernet = parse_ethernet(clk, rx=rx, out=rx_ip)
-    ip = parse_ip(rx=rx_ip, out=rx_udp)
-    udp = parse_udp(clk=rx_ip, rx=rx_udp, tx=tx)
-
-    return instances()
-
-
-@block
-def test_bench(clk, rx, tx, in_packets):
-    @always(clk.posedge)
-    def tb():
-        rx.next = in_packets.pop()
-        print(int(tx), end='')
-
-    return tb
+    print("Ethernet Header")
+    print("{} {}".format(bhex(packet[:6]), bhex(packet[6: 12])))
+    print("{} {}".format(bhex(packet[12: 14]), bhex(packet[-4:])))
+    print("\nIP Header")
+    print("{} {} {} {}".format(bhex(packet[14: 18]), bhex(packet[18: 22]),
+                               bhex(packet[22: 25]), bhex(packet[25: 30]), bhex(packet[30: 46])))
+    print("{} {} {} {}".format(bhex(packet[46: 48]), bhex(packet[48: 50]),
+                               bhex(packet[50: 52]), bhex(packet[52: 54])))
 
 
 def main():
-    data = [bool(int(x)) for x in "0000010101010101011"]
-    period = 20
+    packet = pack(
+        src_mac="00:00:00:00:00:01",
+        dst_mac="00:00:00:00:00:02",
+        src_ip="192.168.1.2",
+        dst_ip="192.168.1.3",
+        src_port=8000,
+        dst_port=8001,
+        data=b"Hello World!"
+    )
 
-    signal_in = Signal(bool(1))
-    signal_out = Signal(bool(0))
-    clk = Signal(bool(0))
+    print_packet(packet)
 
-    clk_gen = clock_gen(clk, period=period)
-    inst = top(clk, signal_in, signal_out)
+    unpacked = unpack(packet)
 
-    tester = test_bench(clk, signal_in, signal_out, data)
-
-    Simulation(clk_gen, inst, tester).run(period * len(data))
-
-    inst.convert(hdl='Verilog', initial_values=True, directory='verilog', name='pass_through')
+    print("\nUnpacked packet:")
+    pprint(unpacked, sort_dicts=False)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
