@@ -19,12 +19,29 @@ def generate_frame_checksum(frame: bytes) -> bytes:
                 crc = (crc << 1) ^ poly
             else:
                 crc = crc << 1
+        crc &= 0xffffffff  # mask to keep crc within 32-bit range
 
     # Complement the CRC and return it as a bytearray in big-endian order
     crc = crc ^ 0xffffffff
     fcs_bytes = crc.to_bytes(4, byteorder='big')
 
     return fcs_bytes
+
+
+def generate_ip_checksum(header: bytes) -> bytes:
+    """
+    Calculate IP header checksum
+    :param header: IP header as bytearray
+    :return: checksum as 2-byte value
+    """
+    checksum = 0
+    for i in range(0, len(header), 2):
+        word = (header[i] << 8) + header[i + 1]
+        checksum += word
+        checksum = (checksum & 0xffff) + (checksum >> 16)
+    checksum = ~checksum & 0xffff
+
+    return checksum.to_bytes(2, byteorder='big')
 
 
 def pack_udp(src_port: int, dst_port: int, data: bytes) -> bytes:
@@ -65,9 +82,12 @@ def pack_ip(src_ip: bytes, dst_ip: bytes, protocol: int, data: bytes) -> bytes:
     ip_header.extend((0x00).to_bytes(1, byteorder='big'))
     ip_header.extend((0x40).to_bytes(1, byteorder='big'))
     ip_header.extend(protocol.to_bytes(1, byteorder='big'))
-    ip_header.extend((0).to_bytes(2, byteorder='big'))
+    ip_header.extend((0).to_bytes(2, byteorder='big'))  # placeholder for checksum
     ip_header.extend(src_ip)
     ip_header.extend(dst_ip)
+
+    # calculate and update checksum
+    ip_header[10:12] = generate_ip_checksum(ip_header)
     ip_header.extend(data)
 
     return bytes(ip_header)

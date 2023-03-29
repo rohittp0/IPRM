@@ -1,6 +1,6 @@
 from typing import Tuple, Dict
 
-from scripts.pack import generate_frame_checksum
+from scripts.pack import generate_frame_checksum, generate_ip_checksum
 
 
 def verify_frame_checksum(frame: bytes) -> None:
@@ -10,13 +10,29 @@ def verify_frame_checksum(frame: bytes) -> None:
     :raises AssertionError: if checksum is invalid
     :return: None
     """
-    received_checksum = frame[:-4]
+    received_checksum = frame[-4:]
     received_frame = frame[:-4]
 
     calculated_checksum = generate_frame_checksum(received_frame)
 
     assert received_checksum == calculated_checksum, \
-        'Invalid checksum, expected {}, got {}'.format(received_frame, calculated_checksum)
+        'Invalid frame checksum, expected {}, got {}'.format(received_frame, calculated_checksum)
+
+
+def verify_ip_checksum(ip_header: bytes) -> None:
+    """
+    Verify IP checksum
+    :param ip_header: IP header as bytes
+    :raises AssertionError: if checksum is invalid
+    :return: None
+    """
+    received_checksum = ip_header[10:12]
+    received_ip_header = ip_header[:10] + b'\x00\x00' + ip_header[12:]
+
+    calculated_checksum = generate_ip_checksum(received_ip_header)
+
+    assert received_checksum == calculated_checksum, \
+        'Invalid ip checksum, expected {}, got {}'.format(received_ip_header, calculated_checksum)
 
 
 def unpack_ethernet(packet: bytes) -> Tuple[bytes, bytes, bytes]:
@@ -29,7 +45,7 @@ def unpack_ethernet(packet: bytes) -> Tuple[bytes, bytes, bytes]:
 
     src_mac = packet[0:6]
     dst_mac = packet[6:12]
-    data = packet[14:]
+    data = packet[14:-4]
 
     return src_mac, dst_mac, data
 
