@@ -1,65 +1,33 @@
-import random
 from myhdl import block, instance, Signal, delay, intbv
 
+from scripts.pack import pack, manchester_encode
 from switch import top
-
-
-def get_packet():
-    # Generate a random packet
-    src_ip = bytes([random.randint(0, 255) for _ in range(4)])
-    dst_ip = bytes([random.randint(0, 255) for _ in range(4)])
-    src_port = 8000
-    dst_port = 8080
-    payload_len = 256  # Hard-coded because I am lazy
-    payload = bytes([random.randint(0, 255) for _ in range(payload_len)])
-
-    # Construct the packet
-    ethernet_header = bytes([0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00])
-    udp_header = int.to_bytes(src_port, 2, byteorder='big') + int.to_bytes(dst_port, 2, byteorder='big') + \
-                 int.to_bytes(payload_len + 8, 2, byteorder='big') + bytes([0, 0]) + payload
-    ip_header = bytes([0x45, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x40, 0x11, 0x00, 0x00]) + \
-                src_ip + dst_ip + udp_header
-
-    # Encode the packet
-    # encoded_packet = bytearray()
-    # for byte in ethernet_header + ip_header:
-    #     encoded_packet.extend([byte])
-    # encoded_int = int.from_bytes(encoded_packet, byteorder='big')
-
-    return ethernet_header + ip_header
-
-
-def manual_manchester(data: bytes):
-    """
-    Encode a byte array using Manchester encoding
-    :param data:
-    :return: encoded data as string of 1s and 0s
-    """
-    for byte in data:
-        for i in range(7, -1, -1):
-            if byte & (1 << i):
-                yield 0
-                yield 1
-            else:
-                yield 1
-                yield 0
 
 
 @block
 def test_bench():
     clk = Signal(bool(0))
     encoded = Signal(bool(0))
-    decoded = Signal(intbv(0)[2384:])
+    decoded = Signal(intbv(0)[464:])
     source_port = Signal(intbv(0)[16:])
     dest_port = Signal(intbv(0)[16:])
-    data = Signal(intbv(0)[640:])
+    data = Signal(intbv(0)[32:])
 
     # Instantiate the design under test
     dut = top(clk, encoded, decoded, source_port, dest_port, data)
 
-    packet = get_packet()
-    manchester = manual_manchester(packet)
-    print('Packet: {}'.format(packet))
+    packet = pack(
+        src_mac="00:00:00:00:00:01",
+        dst_mac="00:00:00:00:00:02",
+        src_ip="192.168.1.2",
+        dst_ip="192.168.1.3",
+        src_port=8000,
+        dst_port=8001,
+        data=b"Hello World!"
+    )
+
+    manchester = manchester_encode(packet)
+    print('Packet: {:08b}'.format(int.from_bytes(packet, byteorder='big')))
     print('Packet Length: {}'.format(len(packet)))
 
     # Clock generator

@@ -36,18 +36,12 @@ def ip_parser(decoded, source_port, dest_port, data, trigger_in):
     # Constants for the UDP header fields
     SRC_PORT_OFFSET = 0
     DST_PORT_OFFSET = 2
-    LENGTH_OFFSET = 4
-    CHECKSUM_OFFSET = 6
     DATA_OFFSET = 8
 
     # Constants for the IP header fields
-    SRC_IP_OFFSET = 12
-    DST_IP_OFFSET = 16
     PROTOCOL_OFFSET = 20
 
     # Constants for the Ethernet header fields
-    SRC_MAC_OFFSET = 6
-    DST_MAC_OFFSET = 0
     ETHERTYPE_OFFSET = 12
 
     # Constants for the UDP protocol

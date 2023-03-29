@@ -112,6 +112,24 @@ def pack_ethernet(src_mac: bytes, dst_mac: bytes, data: bytes) -> bytes:
     return bytes(ethernet_header)
 
 
+def manchester_encode(data: bytes):
+    """
+    Encode a byte array using Manchester encoding
+    :param data: Data to be encoded
+    :return: encoded data as list of 1s and 0s
+    """
+    encoded = []
+
+    for byte in data:
+        for i in range(0, -1, -1):
+            if byte & (1 << i):
+                encoded.extend([0, 1])
+            else:
+                encoded.extend([1, 0])
+
+    return encoded
+
+
 def pack(src_mac: str, dst_mac: str, src_ip: str, dst_ip: str, src_port: int, dst_port: int, data: bytes) -> bytes:
     """
     Pack Ethernet packet
