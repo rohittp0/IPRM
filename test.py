@@ -1,5 +1,6 @@
 from myhdl import block, instance, Signal, delay, intbv
 
+from main import int_to_bits
 from scripts.pack import pack, manchester_encode
 from switch import top
 
@@ -27,7 +28,7 @@ def test_bench():
     )
 
     manchester = manchester_encode(packet)
-    print('Packet: {:08b}'.format(int.from_bytes(packet, byteorder='big')))
+    print('Packet: \n{}'.format(int_to_bits(int.from_bytes(packet, byteorder='big'))))
     print('Packet Length: {}'.format(len(packet)))
 
     # Clock generator

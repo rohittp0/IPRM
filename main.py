@@ -1,11 +1,22 @@
 from pprint import pprint
 
+from tabulate import tabulate
+
 from scripts.pack import pack
 from scripts.unpack import unpack
 
 
 def bhex(bytes_: bytes):
     return bytes_.hex(sep=".")
+
+
+def int_to_bits(n):
+    b = format(n, 'b')
+    b = b.zfill(8 * ((len(b) + 7) // 8))
+    bits = [b[i:i + 8] for i in range(0, len(b), 8)]
+    headers = ['Byte Index', *range(len(bits))]
+    data = ['Bits'] + bits
+    return tabulate([data], headers=headers, tablefmt='grid')
 
 
 def print_packet(packet: bytes):
