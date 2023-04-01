@@ -123,9 +123,9 @@ def manchester_encode(data: bytes):
     for byte in data:
         for i in range(7, -1, -1):
             if byte & (1 << i):
-                encoded.extend([0, 1])
+                encoded = [0, 1] + encoded
             else:
-                encoded.extend([1, 0])
+                encoded = [1, 0] + encoded
 
     return encoded
 
@@ -152,4 +152,4 @@ def pack(src_mac: str, dst_mac: str, src_ip: str, dst_ip: str, src_port: int, ds
     ip = pack_ip(src_ip, dst_ip, 0x11, udp)
     ethernet = pack_ethernet(src_mac, dst_mac, ip)
 
-    return ethernet[::-1]
+    return ethernet

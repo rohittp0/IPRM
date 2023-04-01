@@ -10,13 +10,24 @@ def bhex(bytes_: bytes):
     return bytes_.hex(sep=".")
 
 
-def int_to_bits(n):
-    b = format(n, 'b')
-    b = b.zfill(8 * ((len(b) + 7) // 8))
+def int_to_bits(b: str) -> str:
     bits = [b[i:i + 8] for i in range(0, len(b), 8)]
     headers = ['Byte Index', *range(len(bits))]
-    data = ['Bits'] + bits
-    return tabulate([data], headers=headers, tablefmt='grid')
+    bits = ['Bits'] + bits
+    hexs = ['Hex'] + [int(x, 2).to_bytes(1, "little") for x in bits[1:]]
+    return tabulate([bits, hexs], headers=headers, tablefmt='grid')
+
+
+def bytes_to_string(bytes_: bytes) -> str:
+    ret = ""
+    for byte in bytes_:
+        for i in range(7, -1, -1):
+            if byte & (1 << i):
+                ret += "1"
+            else:
+                ret += "0"
+
+    return ret
 
 
 def print_packet(packet: bytes):

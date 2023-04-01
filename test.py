@@ -1,6 +1,6 @@
 from myhdl import block, instance, Signal, delay, intbv
 
-from main import int_to_bits
+from main import int_to_bits, bytes_to_string
 from scripts.pack import pack, manchester_encode
 from switch import top
 
@@ -12,7 +12,7 @@ def test_bench():
     decoded = Signal(intbv(0)[464:])
     source_port = Signal(intbv(0)[16:])
     dest_port = Signal(intbv(0)[16:])
-    data = Signal(intbv(0)[32:])
+    data = Signal(intbv(0)[96:])
 
     # Instantiate the design under test
     dut = top(clk, encoded, decoded, source_port, dest_port, data)
@@ -28,7 +28,7 @@ def test_bench():
     )
 
     manchester = manchester_encode(packet)
-    print('Packet: \n{}'.format(int_to_bits(int.from_bytes(packet, byteorder='big'))))
+    print('Packet: \n{}'.format(int_to_bits(bytes_to_string(packet))))
     print('Packet Length: {}'.format(len(packet)))
 
     # Clock generator
@@ -57,18 +57,13 @@ def test_bench():
         while True:
             yield delay(10000)
 
-            print('Source port: {}'.format(source_port))
-            print('Destination port: {}'.format(dest_port))
+            txt = [int(data[i + 8: i]).to_bytes(1, "little") for i in range(0, len(data), 8)]
+
+            print('Source port: {}'.format(int(source_port)))
+            print('Destination port: {}'.format(int(dest_port)))
+            print('Data: {}'.format(txt[::-1]))
             print('Encoded: {}'.format(encoded))
-            print('Data: {}'.format(data))
             print('-' * 80)
-            # if data != payload:
-            #     raise ValueError('Data mismatch')
-            # if source_port != src_port:
-            #     raise ValueError('Source port mismatch')
-            # if dest_port != dst_port:
-            #     raise ValueError('Destination port mismatch')
-            # print('Packet received successfully')
 
     return dut, clock_gen, monitor, driver
 

@@ -33,17 +33,17 @@ def manchester_decoder(clk, encoded, decoded, trigger_out):
 
 @block
 def ip_parser(decoded, source_port, dest_port, data, trigger_in):
-    LENGTH = len(decoded) + 1
+    LENGTH = len(decoded)
     # Constants for the UDP header fields
     SRC_PORT_OFFSET = LENGTH - 34 * 8
     DST_PORT_OFFSET = LENGTH - 36 * 8
     DATA_OFFSET = LENGTH - 42 * 8
 
     # Constants for the IP header fields
-    PROTOCOL_OFFSET = LENGTH - 24 * 8 - 2
+    PROTOCOL_OFFSET = LENGTH - 23 * 8
 
     # Constants for the Ethernet header fields
-    ETHERTYPE_OFFSET = LENGTH - 14 * 8
+    ETHERTYPE_OFFSET = LENGTH - 12 * 8
 
     # Constants for the UDP protocol
     UDP_PROTOCOL = 17
@@ -58,17 +58,17 @@ def ip_parser(decoded, source_port, dest_port, data, trigger_in):
             return
 
         # Extract Ethernet header fields
-        ethertype = int(decoded[ETHERTYPE_OFFSET + 16:ETHERTYPE_OFFSET])
-        protocol = int(decoded[PROTOCOL_OFFSET + 8: PROTOCOL_OFFSET])
+        ethertype = int(decoded[ETHERTYPE_OFFSET:ETHERTYPE_OFFSET - 16])
+        protocol = int(decoded[PROTOCOL_OFFSET: PROTOCOL_OFFSET - 8])
 
         # Only parse IPv4 UDP packets
         if ethertype == ETHERTYPE_IPV4 and protocol == UDP_PROTOCOL:
             # Extract UDP header fields
-            source_port.next = int(decoded[SRC_PORT_OFFSET + 16:SRC_PORT_OFFSET])
-            dest_port.next = int(decoded[DST_PORT_OFFSET + 16:DST_PORT_OFFSET])
+            source_port.next = int(decoded[SRC_PORT_OFFSET:SRC_PORT_OFFSET - 16])
+            dest_port.next = int(decoded[DST_PORT_OFFSET:DST_PORT_OFFSET - 16])
 
             # Copy UDP data
-            data.next = decoded[DATA_OFFSET:]
+            data.next = decoded[DATA_OFFSET: 32]
 
     # Return the logic process
     return logic
