@@ -33,16 +33,17 @@ def manchester_decoder(clk, encoded, decoded, trigger_out):
 
 @block
 def ip_parser(decoded, source_port, dest_port, data, trigger_in):
+    LENGTH = len(decoded) + 1
     # Constants for the UDP header fields
-    SRC_PORT_OFFSET = 0
-    DST_PORT_OFFSET = 2
-    DATA_OFFSET = 8
+    SRC_PORT_OFFSET = LENGTH - 34 * 8
+    DST_PORT_OFFSET = LENGTH - 36 * 8
+    DATA_OFFSET = LENGTH - 42 * 8
 
     # Constants for the IP header fields
-    PROTOCOL_OFFSET = 20
+    PROTOCOL_OFFSET = LENGTH - 24 * 8 - 2
 
     # Constants for the Ethernet header fields
-    ETHERTYPE_OFFSET = 12
+    ETHERTYPE_OFFSET = LENGTH - 14 * 8
 
     # Constants for the UDP protocol
     UDP_PROTOCOL = 17
@@ -57,23 +58,17 @@ def ip_parser(decoded, source_port, dest_port, data, trigger_in):
             return
 
         # Extract Ethernet header fields
-        # src_mac = decoded[SRC_MAC_OFFSET + 6:SRC_MAC_OFFSET]
-        # dst_mac = decoded[DST_MAC_OFFSET + 6:DST_MAC_OFFSET]
-        ethertype = int.from_bytes(decoded[ETHERTYPE_OFFSET + 2:ETHERTYPE_OFFSET], byteorder='big')
+        ethertype = int(decoded[ETHERTYPE_OFFSET + 16:ETHERTYPE_OFFSET])
+        protocol = int(decoded[PROTOCOL_OFFSET + 8: PROTOCOL_OFFSET])
 
         # Only parse IPv4 UDP packets
-        if ethertype == ETHERTYPE_IPV4 and decoded[PROTOCOL_OFFSET] == UDP_PROTOCOL:
-            # src_ip = decoded[SRC_IP_OFFSET + 4:SRC_IP_OFFSET]
-            # dst_ip = decoded[DST_IP_OFFSET + 4:DST_IP_OFFSET]
-            udp_header = decoded[DATA_OFFSET + 8:DATA_OFFSET]
-            udp_data = decoded[DATA_OFFSET + 8:]
-
+        if ethertype == ETHERTYPE_IPV4 and protocol == UDP_PROTOCOL:
             # Extract UDP header fields
-            source_port.next = int.from_bytes(udp_header[SRC_PORT_OFFSET + 2:SRC_PORT_OFFSET], byteorder='big')
-            dest_port.next = int.from_bytes(udp_header[DST_PORT_OFFSET + 2:DST_PORT_OFFSET], byteorder='big')
+            source_port.next = int(decoded[SRC_PORT_OFFSET + 16:SRC_PORT_OFFSET])
+            dest_port.next = int(decoded[DST_PORT_OFFSET + 16:DST_PORT_OFFSET])
 
             # Copy UDP data
-            data.next = udp_data
+            data.next = decoded[DATA_OFFSET:]
 
     # Return the logic process
     return logic
