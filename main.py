@@ -1,9 +1,11 @@
 from pprint import pprint
 
+from myhdl import Signal, intbv
 from tabulate import tabulate
 
 from scripts.pack import pack
 from scripts.unpack import unpack
+from switch import top
 
 
 def bhex(bytes_: bytes):
@@ -66,6 +68,23 @@ def main():
 
     print("\nUnpacked packet:")
     pprint(unpacked, sort_dicts=False)
+
+    clk = Signal(bool(0))
+    encoded = Signal(bool(0))
+    decoded = Signal(intbv(0)[464:])
+    source_port = Signal(intbv(0)[16:])
+    dest_port = Signal(intbv(0)[16:])
+    data = Signal(intbv(0)[96:])
+
+    # Instantiate the design under test
+    dut = top(clk, encoded, decoded, source_port, dest_port, data)
+
+    dut.convert(
+        hdl="Verilog",
+        initial_values=True,
+        directory="packet-switch.srcs/sources_1/new/",
+        name="pass_through"
+    )
 
 
 if __name__ == "__main__":

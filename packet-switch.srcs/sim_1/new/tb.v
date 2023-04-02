@@ -1,49 +1,41 @@
-`timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company:
-// Engineer:
-//
-// Create Date: 10.03.2023 21:32:15
-// Design Name:
-// Module Name: tb
-// Project Name:
-// Target Devices:
-// Tool Versions:
-// Description:
-//
-// Dependencies:
-//
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-//
-//////////////////////////////////////////////////////////////////////////////////
-
-
-module tb();
+module tb_pass_through;
 
 reg clk;
-reg rx;
-wire tx;
+reg encoded;
+wire [463:0] decoded;
+wire [15:0] source_port;
+wire [15:0] dest_port;
+wire [95:0] data;
 
-pass_through uut (
-    .clk(clk),
-    .rx(rx),
-    .tx(tx)
+initial begin
+    $from_myhdl(
+        clk,
+        encoded
+    );
+    $to_myhdl(
+        decoded,
+        source_port,
+        dest_port,
+        data
+    );
+end
+
+initial begin
+    forever
+    begin
+        #5 clk = ~clk;
+    end
+end
+
+pass_through dut(
+    clk,
+    encoded,
+    decoded,
+    source_port,
+    dest_port,
+    data
 );
 
 
-initial begin
-    clk = 0;
-    rx = 0;
-end
-
-initial begin
-    forever #5 clk = ~clk;
-end
-
-initial begin
-    forever #10 rx = ~rx;
-end
 
 endmodule

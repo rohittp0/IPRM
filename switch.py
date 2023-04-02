@@ -6,7 +6,8 @@ def manchester_decoder(clk, encoded, decoded, trigger_out):
     # Register to hold the last Manchester-encoded bit
     last_bit = Signal(bool(0))
 
-    i = Signal(intbv(0))
+    i = Signal(intbv(0, min=0, max=len(decoded) * 2))
+    index = Signal(intbv(0, min=0, max=len(decoded)))
 
     # Manchester decoding logic
     @always(clk.posedge)
@@ -14,15 +15,17 @@ def manchester_decoder(clk, encoded, decoded, trigger_out):
         if trigger_out:
             return
 
-        if i.val % 2:
+        if i % 2:
             if last_bit and not encoded:
-                decoded.next[i.val // 2] = 0
+                decoded.next[index.val] = 0
             elif not last_bit and encoded:
-                decoded.next[i.val // 2] = 1
+                decoded.next[index.val] = 1
             elif not last_bit and not encoded:
                 trigger_out.next = 1
             elif last_bit and encoded:
                 raise ValueError('Invalid Manchester code 11')
+
+            index.next = index + 1
         else:
             last_bit.next = encoded
 
