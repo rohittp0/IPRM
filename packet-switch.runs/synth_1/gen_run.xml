@@ -1,14 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <GenRun Id="synth_1" LaunchPart="xc7a35tcpg236-1" LaunchTime="1678466267">
   <File Type="PA-TCL" Name="pass_through.tcl"/>
-  <File Type="RDS-PROPCONSTRS" Name="pass_through_drc_synth.rpt"/>
   <File Type="REPORTS-TCL" Name="pass_through_reports.tcl"/>
   <File Type="RDS-RDS" Name="pass_through.vds"/>
   <File Type="RDS-UTIL" Name="pass_through_utilization_synth.rpt"/>
   <File Type="RDS-UTIL-PB" Name="pass_through_utilization_synth.pb"/>
   <File Type="RDS-DCP" Name="pass_through.dcp"/>
-  <File Type="VDS-TIMINGSUMMARY" Name="pass_through_timing_summary_synth.rpt"/>
-  <File Type="VDS-TIMING-PB" Name="pass_through_timing_summary_synth.pb"/>
   <FileSet Name="sources" Type="DesignSrcs" RelSrcDir="$PSRCDIR/sources_1" RelGenDir="$PGENDIR/sources_1">
     <Filter Type="Srcs"/>
     <File Path="$PSRCDIR/sources_1/new/pass-through.v">

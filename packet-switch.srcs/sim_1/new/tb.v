@@ -1,4 +1,6 @@
-module tb_pass_through;
+`timescale 1ns/10ps
+
+module tb;
 
 reg clk;
 reg encoded;
@@ -7,35 +9,40 @@ wire [15:0] source_port;
 wire [15:0] dest_port;
 wire [95:0] data;
 
-initial begin
-    $from_myhdl(
-        clk,
-        encoded
-    );
-    $to_myhdl(
-        decoded,
-        source_port,
-        dest_port,
-        data
-    );
-end
+integer i;
 
-initial begin
-    forever
-    begin
-        #5 clk = ~clk;
-    end
-end
-
-pass_through dut(
-    clk,
-    encoded,
-    decoded,
-    source_port,
-    dest_port,
-    data
+// Instantiate the design under test
+pass_through dut (
+    .clk(clk),
+    .encoded(encoded),
+    .decoded(decoded),
+    .source_port(source_port),
+    .dest_port(dest_port),
+    .data(data)
 );
 
+// Clock generation
+always begin
+    #5 clk = ~clk;
+end
 
+// Define Ethernet frame
+localparam ETH_FRAME_LEN = 928;
+reg [ETH_FRAME_LEN-1:0] eth_frame = 928'b0110100101011010011010101010101010011010101010011001100110101001011010101001101010100110100101101010010110010110100110100101011001010101100101100101011001100110101010101001101001010101100101101010010110010110101001011001011001100110100101101010100110100110101010101010101010101010101010101010011001101010101010101010101001101010101001100101010101101010101010101010011001010101011010100101101010101010011010101010101010101001100110011010101010100101100110101010101001101010101010101010100110011001101010101010010101010101100101100101011001011001011010100110101010101010101001101010101010101010101010101010011010101010101010101010101010101010101010011001101010101010101010101010101010101010011001101010011010101010101010101010100110101010011010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010100110101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010;
+
+initial begin
+    // Initialize inputs
+    clk = 0;
+    encoded = 0;
+
+    // Apply Ethernet frame to encoded input bit by bit
+    for (i = 0; i < ETH_FRAME_LEN; i = i+1) begin
+        @(posedge clk);
+        encoded = eth_frame[i];
+    end
+
+    // Check outputs
+    // ...
+end
 
 endmodule

@@ -1,6 +1,6 @@
 # compile verilog/system verilog design source files
 verilog xil_defaultlib  \
-"../../../../packet-switch.srcs/sources_1/new/pass-through.v" \
+"../../../../packet-switch.srcs/sources_1/new/pass_through.v" \
 "../../../../packet-switch.srcs/sim_1/new/tb.v" \
 
 # compile glbl module

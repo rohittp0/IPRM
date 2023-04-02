@@ -6,8 +6,8 @@ def manchester_decoder(clk, encoded, decoded, trigger_out):
     # Register to hold the last Manchester-encoded bit
     last_bit = Signal(bool(0))
 
-    i = Signal(intbv(0, min=0, max=len(decoded) * 2))
-    index = Signal(intbv(0, min=0, max=len(decoded)))
+    i = Signal(intbv(0, min=0))
+    index = Signal(intbv(0, min=0))
 
     # Manchester decoding logic
     @always(clk.posedge)

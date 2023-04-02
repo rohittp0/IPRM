@@ -32,6 +32,10 @@ reg [8:0] manchester_decoder0_index = 0;
 reg manchester_decoder0_last_bit = 0;
 
 
+// TODO: Clean up after debug
+reg [15:0] ethertype_reg;
+reg [7:0] protocol_reg;
+//
 
 always @(posedge clk) begin: PASS_THROUGH_MANCHESTER_DECODER0_MANCHESTER_DECODE
     if (trigger) begin
@@ -39,10 +43,10 @@ always @(posedge clk) begin: PASS_THROUGH_MANCHESTER_DECODER0_MANCHESTER_DECODE
     end
     if ((manchester_decoder0_i % 2)) begin
         if ((manchester_decoder0_last_bit && (!encoded))) begin
-            decoded[manchester_decoder0_index] <= 0;
+            decoded[manchester_decoder0_index] <= 1;
         end
         else if (((!manchester_decoder0_last_bit) && encoded)) begin
-            decoded[manchester_decoder0_index] <= 1;
+            decoded[manchester_decoder0_index] <= 0;
         end
         else if (((!manchester_decoder0_last_bit) && (!encoded))) begin
             trigger <= 1;
@@ -65,8 +69,14 @@ always @(decoded, trigger) begin: PASS_THROUGH_IP_PARSER0_LOGIC
     if ((!trigger)) begin
         disable PASS_THROUGH_IP_PARSER0_LOGIC;
     end
+    
     ethertype = decoded[368-1:(368 - 16)];
     protocol = decoded[280-1:(280 - 8)];
+    
+    ethertype_reg <= ethertype;
+    protocol_reg <= protocol;
+
+    
     if (((ethertype == 2048) && (protocol == 17))) begin
         source_port = decoded[192-1:(192 - 16)];
         dest_port = decoded[176-1:(176 - 16)];

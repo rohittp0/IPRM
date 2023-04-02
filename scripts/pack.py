@@ -112,20 +112,23 @@ def pack_ethernet(src_mac: bytes, dst_mac: bytes, data: bytes) -> bytes:
     return bytes(ethernet_header)
 
 
-def manchester_encode(data: bytes):
+def manchester_encode(data: bytes, reverse: bool = True) -> list:
     """
     Encode a byte array using Manchester encoding
+    :param reverse: Reverses the data bit vice before encoding
     :param data: Data to be encoded
     :return: encoded data as list of 1s and 0s
     """
     encoded = []
 
+    extend = (lambda x: x + encoded) if reverse else (lambda x: encoded + x)
+
     for byte in data:
         for i in range(7, -1, -1):
             if byte & (1 << i):
-                encoded = [0, 1] + encoded
+                encoded = extend([0, 1])
             else:
-                encoded = [1, 0] + encoded
+                encoded = extend([1, 0])
 
     return encoded
 
