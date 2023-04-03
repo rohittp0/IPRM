@@ -121,16 +121,22 @@ def manchester_encode(data: bytes, reverse: bool = True) -> list:
     """
     encoded = []
 
-    extend = (lambda x: x + encoded) if reverse else (lambda x: encoded + x)
-
     for byte in data:
         for i in range(7, -1, -1):
             if byte & (1 << i):
-                encoded = extend([0, 1])
+                encoded.append([0, 1])
             else:
-                encoded = extend([1, 0])
+                encoded.append([1, 0])
 
-    return encoded
+    if reverse:
+        encoded.reverse()
+
+    enc = []
+
+    for e in encoded:
+        enc.extend(e)
+
+    return enc
 
 
 def pack(src_mac: str, dst_mac: str, src_ip: str, dst_ip: str, src_port: int, dst_port: int, data: bytes) -> bytes:

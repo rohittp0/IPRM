@@ -3,7 +3,7 @@ from pprint import pprint
 from myhdl import Signal, intbv
 from tabulate import tabulate
 
-from scripts.pack import pack, manchester_encode
+from scripts.pack import pack
 from scripts.unpack import unpack
 from switch import top
 
@@ -82,7 +82,7 @@ def main():
     )
 
     print_packet(packet)
-    print("".join(map(str, manchester_encode(packet))))
+    print(int_to_bits(bytes_to_string(packet)))
 
     unpacked = unpack(packet)
 
