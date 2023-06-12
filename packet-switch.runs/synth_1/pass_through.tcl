@@ -85,7 +85,7 @@ set_property ip_output_repo d:/Data/HLS/packet-switch/packet-switch.cache/ip [cu
 set_property ip_cache_permissions {read write} [current_project]
 OPTRACE "Creating in-memory project" END { }
 OPTRACE "Adding files" START { }
-read_verilog -library xil_defaultlib D:/Data/HLS/packet-switch/packet-switch.srcs/sources_1/new/pass-through.v
+read_verilog -library xil_defaultlib D:/Data/HLS/packet-switch/packet-switch.srcs/sources_1/new/pass_through.v
 OPTRACE "Adding files" END { }
 # Mark all dcp files as not used in implementation to prevent them from being
 # stitched into the results of this synthesis run. Any black boxes in the
@@ -99,6 +99,8 @@ read_xdc D:/Data/HLS/packet-switch/packet-switch.srcs/constrs_1/new/basys3.xdc
 set_property used_in_implementation false [get_files D:/Data/HLS/packet-switch/packet-switch.srcs/constrs_1/new/basys3.xdc]
 
 set_param ips.enableIPCacheLiteLoad 1
+
+read_checkpoint -auto_incremental -incremental D:/Data/HLS/packet-switch/packet-switch.srcs/utils_1/imports/synth_1/pass_through.dcp
 close [open __synthesis_is_running__ w]
 
 OPTRACE "synth_design" START { }
