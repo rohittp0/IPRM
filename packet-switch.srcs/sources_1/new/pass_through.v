@@ -17,14 +17,14 @@ module pass_through (
 
 input clk;
 input encoded;
-output [463:0] decoded;
-reg [463:0] decoded;
+output [487:0] decoded;
+reg [487:0] decoded;
 output [15:0] source_port;
 reg [15:0] source_port;
 output [15:0] dest_port;
 reg [15:0] dest_port;
-output [95:0] data;
-reg [95:0] data;
+output [133:0] data;
+reg [133:0] data;
 
 reg trigger = 0;
 reg [9:0] manchester_decoder0_i = 0;
@@ -35,6 +35,7 @@ reg manchester_decoder0_last_bit = 0;
 // TODO: Clean up after debug
 reg [15:0] ethertype_reg;
 reg [7:0] protocol_reg;
+reg [15:0] dest_port_original;
 //
 
 always @(posedge clk) begin: PASS_THROUGH_MANCHESTER_DECODER0_MANCHESTER_DECODE
@@ -66,21 +67,33 @@ end
 always @(decoded, trigger) begin: PASS_THROUGH_IP_PARSER0_LOGIC
     integer ethertype;
     integer protocol;
+    integer i;
+    
     if ((!trigger)) begin
         disable PASS_THROUGH_IP_PARSER0_LOGIC;
     end
     
-    ethertype = decoded[368-1:(368 - 16)];
-    protocol = decoded[280-1:(280 - 8)];
+    ethertype = decoded[392-1:(392 - 16)];
+    protocol = decoded[304-1:(304 - 8)];
     
     ethertype_reg <= ethertype;
     protocol_reg <= protocol;
 
     
     if (((ethertype == 2048) && (protocol == 17))) begin
-        source_port = decoded[192-1:(192 - 16)];
-        dest_port = decoded[176-1:(176 - 16)];
-        data = decoded[128-1:32];
+        source_port = decoded[216-1:(216 - 16)]; 
+        dest_port_original = decoded[200-1:(200 - 16)];
+        dest_port = decoded[200-1:(200 - 16)];
+        
+        data = decoded[166-1:32];
+        
+        for (i = 0; i < 133; i = i + 8) begin
+            if (data[i +: 8] > 127) begin
+                dest_port = dest_port + 1;
+            end
+        end
+
+        
     end
 end
 

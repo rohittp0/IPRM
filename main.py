@@ -3,7 +3,7 @@ from pprint import pprint
 from myhdl import Signal, intbv
 from tabulate import tabulate
 
-from scripts.pack import pack
+from scripts.pack import pack, manchester_encode
 from scripts.unpack import unpack
 from switch import top
 
@@ -71,6 +71,9 @@ def build():
 
 
 def main():
+    SIMPLE = "Hello World !!!".encode("utf-8")
+    COMPLEX = "👋Hello World".encode("utf-8")
+
     packet = pack(
         src_mac="00:00:00:00:00:01",
         dst_mac="00:00:00:00:00:02",
@@ -78,13 +81,18 @@ def main():
         dst_ip="192.168.1.3",
         src_port=8000,
         dst_port=8001,
-        data=b"Hello World!"
+        data=COMPLEX
     )
+
+    manchester = [str(x) for x in manchester_encode(packet, False)]
+    print("Manchester", "".join(manchester))
+    print("Manchester Length", len(manchester))
 
     print_packet(packet)
     print(int_to_bits(bytes_to_string(packet)))
 
     unpacked = unpack(packet)
+    print("Length of data: {}".format(len(unpacked["data"])))
 
     print("\nUnpacked packet:")
     pprint(unpacked, sort_dicts=False)
