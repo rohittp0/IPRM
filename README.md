@@ -1,6 +1,6 @@
 # IPRM
 
-This is my B. Tech Mini Project. You can find the full project report [here]()
+This is my B. Tech Mini Project. You can find the full project report [here](IPRM.pdf)
 ## Abstract
 
 Network computing refers to performing computation within
