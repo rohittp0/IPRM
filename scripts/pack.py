@@ -121,15 +121,15 @@ def manchester_encode(data: bytes, reverse: bool = True) -> list:
     """
     encoded = []
 
+    ONE = [1, 0] if reverse else [0, 1]
+    ZERO = [0, 1] if reverse else [1, 0]
+
     for byte in data:
         for i in range(7, -1, -1):
             if byte & (1 << i):
-                encoded.append([0, 1])
+                encoded.append(ONE)
             else:
-                encoded.append([1, 0])
-
-    if reverse:
-        encoded.reverse()
+                encoded.append(ZERO)
 
     enc = []
 

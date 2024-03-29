@@ -1,4 +1,0 @@
-Breakpoint File Version 1.0
-80,true,"D:/Data/HLS/packet-switch/packet-switch.srcs/sources_1/new/pass_through.v"
-77,true,"D:/Data/HLS/packet-switch/packet-switch.srcs/sources_1/new/pass_through.v"
-81,true,"D:/Data/HLS/packet-switch/packet-switch.srcs/sources_1/new/pass_through.v"
