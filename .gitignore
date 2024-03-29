@@ -1,3 +1,8 @@
 .idea/
 venv/
 *.cache
+packet-switch.gen/
+packet-switch.hw/
+packet-switch.ip_user_files/
+packet-switch.runs/
+packet-switch.sim/

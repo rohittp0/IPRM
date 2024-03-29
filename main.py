@@ -1,11 +1,9 @@
 from pprint import pprint
 
-from myhdl import Signal, intbv
 from tabulate import tabulate
 
 from scripts.pack import pack, manchester_encode
 from scripts.unpack import unpack
-from switch import top
 
 
 def bhex(bytes_: bytes):
@@ -49,25 +47,6 @@ def print_packet(packet: bytes):
                                bhex(packet[22: 25]), bhex(packet[25: 30]), bhex(packet[30: 46])))
     print("{} {} {} {}".format(bhex(packet[46: 48]), bhex(packet[48: 50]),
                                bhex(packet[50: 52]), bhex(packet[52: 54])))
-
-
-def build():
-    clk = Signal(bool(0))
-    encoded = Signal(bool(0))
-    decoded = Signal(intbv(0)[464:])
-    source_port = Signal(intbv(0)[16:])
-    dest_port = Signal(intbv(0)[16:])
-    data = Signal(intbv(0)[96:])
-
-    # Instantiate the design under test
-    dut = top(clk, encoded, decoded, source_port, dest_port, data)
-
-    dut.convert(
-        hdl="Verilog",
-        initial_values=True,
-        directory="packet-switch.srcs/sources_1/new/",
-        name="pass_through"
-    )
 
 
 def main():

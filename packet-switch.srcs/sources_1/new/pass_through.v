@@ -23,8 +23,8 @@ output [15:0] source_port;
 reg [15:0] source_port;
 output [15:0] dest_port;
 reg [15:0] dest_port;
-output [133:0] data;
-reg [133:0] data;
+output [134:0] data;
+reg [134:0] data;
 
 reg trigger = 0;
 reg [9:0] manchester_decoder0_i = 0;
@@ -87,7 +87,7 @@ always @(decoded, trigger) begin: PASS_THROUGH_IP_PARSER0_LOGIC
         
         data = decoded[166-1:32];
         
-        for (i = 0; i < 133; i = i + 8) begin
+        for (i = 0; i < 125; i = i + 8) begin
             if (data[i +: 8] > 127) begin
                 dest_port = dest_port + 1;
             end
